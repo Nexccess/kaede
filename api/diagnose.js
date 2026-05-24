@@ -1,100 +1,97 @@
-// api/diagnose.js — Path-Flow v3.2 | kaede salon
-// Gemini 3-model fallback: flash-lite → 1.5-flash → 1.5-flash-8b
+// api/diagnose.js  ─  Path-Flow 採用向け AI診断  (Ver 3.4 / kaede-corp)
+// Gemini fallback chain: gemini-2.5-flash-lite → gemini-1.5-flash → gemini-1.5-flash-8b
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const MODELS = [
-  'gemini-2.5-flash-lite',
-  'gemini-1.5-flash',
-  'gemini-1.5-flash-8b'
+  "gemini-2.5-flash-lite",
+  "gemini-1.5-flash",
+  "gemini-1.5-flash-8b",
 ];
 
 const MENU_LIST = `
-【kaede 楓 salon メンズ脱毛メニュー（税込・都度払い）】
-- Sパーツ（鼻下・あご・顎下・首など）: ¥700〜/部位
-- Mパーツ（わき・うなじ・Vライン上など）: ¥1,400/部位
-- MLパーツ（胸・腹・ヒジ上下など）: ¥2,800/部位
-- Lパーツ（背中・おしり・VIOなど）: ¥4,200/部位
-- 全身脱毛（VIOなし・120分）: ¥11,000（人気No.1）
-- 顔のみ（25分）: ¥3,000
-- VIO（25分）: ¥4,000
-- 脱毛freeコース30分: 時間内好きな部位を何パーツでも
-- 脱毛freeコース60分: 時間内好きな部位を何パーツでも
+【楓salon 採用 ポジション一覧】
+- セラピスト（未経験歓迎）：研修あり・時給1,200〜1,600円
+- 受付・フロントスタッフ：週2〜OK・扶養内勤務応相談
+- 業務委託セラピスト：経験者向け・歩合40〜50%
+- 副業・WワークOK：週1〜・扶養内対応
 `;
 
-const SYSTEM_PROMPT = `あなたはメンズ脱毛サロン「kaede 楓 salon」のAI診断アシスタントです。
-ユーザーの5つの回答を分析し、最適なメニューをJSON形式で返してください。
+const SYSTEM_PROMPT = `
+あなたは楓salon（メンズ美容サロン）の採用担当AIアシスタントです。
+応募希望者の状況をヒアリングし、最も適したポジションを提案してください。
 
 ${MENU_LIST}
 
-レスポンスは必ず以下のJSON形式のみ（前後のテキスト・コードブロック不要）：
+【回答ルール】
+1. JSONのみ返答。マークダウン・コードブロック不要。
+2. 以下の形式を厳守する:
 {
-  "recommended_menu": "メニュー名",
-  "price": "料金表記（例: ¥11,000/回）",
+  "recommended": "ポジション名",
   "score": 数値(0-100),
-  "level": "A" or "B" or "C",
-  "reason": "推奨理由（2〜3文、100文字以内）"
+  "level": "A" | "B" | "C",
+  "reason": "推薦理由（100文字以内）",
+  "message": "応募者へのひとこと（50文字以内・温かみのある表現）"
+}
+3. スコア基準: A=80以上（即戦力・優先対応）/ B=50-79（研修で活躍可能）/ C=49以下（まずは面談推奨）
+4. 回答は必ず上記JSONのみ。前置き・説明一切不要。
+`;
+
+function buildPrompt(answers) {
+  return `
+以下は応募希望者の回答です。最適なポジションを提案してください。
+
+Q1 希望の働き方: ${answers[0] || "未回答"}
+Q2 美容・接客の経験: ${answers[1] || "未回答"}
+Q3 週に働ける日数: ${answers[2] || "未回答"}
+Q4 扶養・社会保険の希望: ${answers[3] || "未回答"}
+Q5 楓salonに期待すること: ${answers[4] || "未回答"}
+`;
 }
 
-levelの基準: A=スコア85以上（最優先で取り組むべき）, B=75以上（効果が高い）, C=74以下（まず試すのに最適）`;
+const FALLBACK_RESULT = {
+  recommended: "セラピスト（未経験歓迎）",
+  score: 65,
+  level: "B",
+  reason: "ご回答内容をもとに、研修から始められるポジションをご提案します。",
+  message: "ぜひ一度、気軽にお話しましょう！",
+};
 
 module.exports = async (req, res) => {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.status(200).end();
+  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
 
   const { answers } = req.body || {};
   if (!answers || !Array.isArray(answers)) {
-    return res.status(400).json({ error: 'Invalid payload' });
+    return res.status(400).json({ error: "answers is required (array)" });
   }
-
-  const userPrompt = `以下のユーザー回答を分析してください：\n${answers.map((a, i) => `Q${i+1}: ${a}`).join('\n')}`;
 
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return res.status(200).json(getFallback(answers));
-  }
+  if (!apiKey) return res.status(200).json(FALLBACK_RESULT);
 
-  const genAI = new GoogleGenerativeAI(apiKey);
+  const genai = new GoogleGenerativeAI(apiKey);
+  const prompt = buildPrompt(answers);
 
   for (const modelName of MODELS) {
     try {
-      const model = genAI.getGenerativeModel({
+      const model = genai.getGenerativeModel({
         model: modelName,
-        systemInstruction: SYSTEM_PROMPT
+        systemInstruction: SYSTEM_PROMPT,
       });
-      const result = await model.generateContent(userPrompt);
-      const text = result.response.text().replace(/```json|```/g, '').trim();
-      const data = JSON.parse(text);
-
-      // Validate required fields
-      if (!data.recommended_menu || !data.score || !data.level) throw new Error('Invalid response shape');
-
-      return res.status(200).json(data);
+      const result = await model.generateContent(prompt);
+      const text = result.response.text().trim();
+      const json = JSON.parse(text.replace(/```json|```/g, "").trim());
+      return res.status(200).json(json);
     } catch (err) {
-      const is503 = err.message && (err.message.includes('503') || err.message.includes('overloaded'));
-      if (!is503 && modelName !== MODELS[MODELS.length - 1]) {
-        // Non-503 error on non-final model: still try next
-      }
-      // Continue to next model
+      const status = err?.status || err?.httpStatus || 0;
+      if (status === 429 || status === 503) continue; // fallback
+      console.error(`[diagnose] ${modelName} error:`, err.message);
+      break;
     }
   }
 
-  // All models failed: rule-based fallback
-  return res.status(200).json(getFallback(answers));
+  return res.status(200).json(FALLBACK_RESULT);
 };
-
-function getFallback(answers) {
-  const part = answers[0] || '';
-  if (part.includes('全身')) {
-    return { recommended_menu: '全身脱毛（VIOなし）', price: '¥11,000/回', score: 88, level: 'A', reason: '全身をまとめてケアしたい方に最適です。120分・人気No.1メニュー。都度払いなのでコース不要でお試しいただけます。' };
-  } else if (part.includes('VIO')) {
-    return { recommended_menu: 'VIO脱毛', price: '¥4,000/回', score: 80, level: 'B', reason: 'VIOは繊細なケアが必要な部位です。熟練スタッフが丁寧に対応いたします。都度払いで気軽にスタートできます。' };
-  } else if (part.includes('ひげ') || part.includes('顔')) {
-    return { recommended_menu: '顔のみ（鼻下・あご・顎下）', price: '¥700〜/部位', score: 75, level: 'B', reason: 'ひげ脱毛はSパーツ単位で部位を選べます。まずは気になる部位だけお試しください。' };
-  } else if (part.includes('脇') || part.includes('腕')) {
-    return { recommended_menu: 'Mパーツ（わき・腕）', price: '¥1,400/部位', score: 74, level: 'C', reason: '清潔感を求める方に人気の部位です。都度払いで負担なく始められます。' };
-  } else {
-    return { recommended_menu: 'MLパーツ（胸・腹・背中）', price: '¥2,800/部位', score: 76, level: 'B', reason: '体幹部のケアをご希望の方に最適です。施術時間の目安は部位ごとに約15〜25分です。' };
-  }
-}
