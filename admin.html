@@ -1,381 +1,501 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>salon楓 管理ダッシュボード</title>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Sans+JP:wght@300;400;500&family=Shippori+Mincho:wght@500;600&display=swap" rel="stylesheet">
-  <style>
-    :root{
-      --maple-red:#B8604A;--maple-deep:#8B3E2A;--maple-gold:#C8A45A;
-      --navy:#1A2B4A;--navy2:#243558;
-      --bg:#FAF6EF;--bg2:#F2EBE0;--bg3:#E8DDD0;
-      --border:#D4C8B0;--border2:#C4B49A;
-      --text:#2D1F0E;--text2:#6B5744;--text3:#9A8070;
-      --white:#FFFFFF;
-      --green:#4A7C59;--yellow:#B8860B;--red:#B8604A;
-      --shadow:0 2px 16px rgba(45,31,14,0.10);
-    }
-    *{margin:0;padding:0;box-sizing:border-box}
-    body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-weight:300;min-height:100vh;font-size:14px}
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理画面 ｜ 楓グループ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1a2f5e;
+  --navy-mid:#2a4080;
+  --blue-light:#e8eef8;
+  --green:#4a8c3f;
+  --green-pale:#e8f5e5;
+  --wood:#c8a46e;
+  --red:#d9534f;
+  --red-pale:#fdecea;
+  --yellow:#f5a623;
+  --yellow-pale:#fef9e7;
+  --text:#1a1a2e;
+  --text-sub:#5a5a7a;
+  --text-light:#9a9ab0;
+  --border:#dee4f0;
+  --white:#ffffff;
+  --bg:#f5f7fc;
+  --radius:10px;
+  --shadow:0 2px 12px rgba(26,47,94,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
 
-    /* ── LOGIN ── */
-    #loginWrap{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:var(--bg)}
-    .login-box{background:var(--white);border:1px solid var(--border);padding:56px 48px;width:100%;max-width:400px;box-shadow:var(--shadow)}
-    .login-logo{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:500;color:var(--maple-red);text-align:center;margin-bottom:4px;letter-spacing:0.14em}
-    .login-logo span{font-size:1.2rem;color:var(--maple-gold);margin-right:6px}
-    .login-sub{font-size:0.72rem;color:var(--text3);text-align:center;letter-spacing:0.18em;margin-bottom:40px;font-family:'Shippori Mincho',serif}
-    .login-label{font-size:0.68rem;color:var(--text2);letter-spacing:0.12em;margin-bottom:6px;display:block;text-transform:uppercase}
-    .login-input{width:100%;padding:12px 16px;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-size:0.88rem;font-weight:300;outline:none;transition:border-color 0.2s;margin-bottom:20px}
-    .login-input:focus{border-color:var(--maple-red)}
-    .login-btn{width:100%;padding:13px;background:var(--maple-red);color:var(--white);border:none;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:0.86rem;font-weight:400;letter-spacing:0.14em;transition:background 0.2s}
-    .login-btn:hover{background:var(--maple-deep)}
-    .login-err{color:var(--red);font-size:0.74rem;margin-top:10px;text-align:center;display:none}
+/* ─── Sidebar ─────────────────────────────── */
+.sidebar{
+  width:220px;min-height:100vh;
+  background:var(--navy);
+  flex-shrink:0;
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sb-logo{
+  padding:24px 20px 20px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+.sb-logo-text{color:var(--white);font-size:1.05rem;font-weight:700;}
+.sb-logo-sub{color:rgba(255,255,255,.5);font-size:.75rem;margin-top:2px;}
+.sb-nav{padding:16px 0;flex:1;}
+.sb-section{
+  color:rgba(255,255,255,.35);
+  font-size:.7rem;font-weight:700;letter-spacing:.12em;
+  padding:12px 20px 6px;
+}
+.sb-link{
+  display:block;padding:10px 20px;
+  color:rgba(255,255,255,.75);text-decoration:none;
+  font-size:.88rem;font-weight:500;
+  transition:.15s;cursor:pointer;border:none;background:none;
+  width:100%;text-align:left;
+}
+.sb-link:hover,.sb-link.active{
+  background:rgba(255,255,255,.1);
+  color:var(--white);border-left:3px solid var(--wood);
+  padding-left:17px;
+}
+.sb-user{
+  padding:16px 20px;border-top:1px solid rgba(255,255,255,.1);
+  font-size:.78rem;color:rgba(255,255,255,.5);
+}
 
-    /* ── DASHBOARD ── */
-    #dashWrap{display:none;min-height:100vh;background:var(--bg)}
-    header{background:var(--white);border-bottom:1px solid var(--border);padding:0 40px;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 8px rgba(45,31,14,0.06)}
-    .hd-left{display:flex;align-items:center;gap:16px}
-    .hd-logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:500;color:var(--maple-red);letter-spacing:0.12em}
-    .hd-logo span{color:var(--maple-gold);margin-right:4px}
-    .hd-badge{background:var(--maple-red);color:var(--white);font-size:0.60rem;padding:2px 10px;letter-spacing:0.14em;font-weight:500}
-    .hd-meta{font-size:0.72rem;color:var(--text3);font-family:'Cormorant Garamond',serif;letter-spacing:0.06em}
-    .logout-btn{background:none;border:1px solid var(--border2);color:var(--text2);padding:6px 18px;cursor:pointer;font-size:0.72rem;font-family:'Noto Sans JP',sans-serif;transition:all 0.2s;letter-spacing:0.08em}
-    .logout-btn:hover{border-color:var(--maple-red);color:var(--maple-red)}
+/* ─── Main ────────────────────────────────── */
+.main{flex:1;min-width:0;padding:28px 32px;}
+.main-header{margin-bottom:28px;}
+.main-title{font-size:1.4rem;font-weight:700;color:var(--navy);}
+.main-sub{font-size:.85rem;color:var(--text-sub);margin-top:4px;}
 
-    main{padding:36px 40px;max-width:1280px;margin:0 auto}
+/* ─── Page Panel ─────────────────────────── */
+.page-panel{display:none;}
+.page-panel.active{display:block;}
 
-    /* STATUS */
-    .status-bar{display:flex;align-items:center;gap:10px;margin-bottom:32px;padding:12px 20px;background:var(--white);border:1px solid var(--border);box-shadow:var(--shadow)}
-    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2.4s ease-in-out infinite;flex-shrink:0}
-    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-    .status-txt{font-size:0.78rem;color:var(--text2);letter-spacing:0.04em}
-    .status-lp{font-size:0.78rem;color:var(--maple-gold);margin-left:auto;font-family:'Cormorant Garamond',serif;letter-spacing:0.10em}
+/* ─── KPI Cards ──────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px;}
+.kpi-card{
+  background:var(--white);border-radius:var(--radius);
+  padding:20px 22px;border:1px solid var(--border);
+  box-shadow:var(--shadow);
+}
+.kpi-label{font-size:.78rem;color:var(--text-sub);font-weight:700;margin-bottom:6px;}
+.kpi-value{font-size:2rem;font-weight:700;color:var(--navy);}
+.kpi-unit{font-size:.85rem;color:var(--text-light);font-weight:400;}
+.kpi-trend{font-size:.78rem;margin-top:4px;}
+.up{color:var(--green);}
+.dn{color:var(--red);}
 
-    /* STATS */
-    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
-    .stat-card{background:var(--white);border:1px solid var(--border);padding:24px 22px;border-top:3px solid var(--maple-red);box-shadow:var(--shadow)}
-    .stat-lbl{font-size:0.70rem;color:var(--text3);letter-spacing:0.16em;margin-bottom:12px;text-transform:uppercase;font-family:'Noto Sans JP',sans-serif;font-weight:400}
-    .stat-val{font-family:'Cormorant Garamond',serif;font-size:3rem;font-weight:500;color:var(--maple-red);line-height:1}
-    .stat-sub{font-size:0.70rem;color:var(--text3);margin-top:8px;letter-spacing:0.08em}
+/* ─── Chart placeholder ──────────────────── */
+.chart-card{
+  background:var(--white);border-radius:var(--radius);
+  padding:22px;border:1px solid var(--border);
+  box-shadow:var(--shadow);margin-bottom:24px;
+}
+.chart-card-title{font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:16px;}
+.chart-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.chart-bar-label{font-size:.8rem;color:var(--text-sub);width:120px;flex-shrink:0;}
+.chart-bar-track{flex:1;height:20px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.chart-bar-fill{height:100%;border-radius:4px;background:var(--navy-mid);transition:.6s ease;}
+.chart-bar-val{font-size:.8rem;font-weight:700;color:var(--navy);width:40px;text-align:right;}
+.chart-note{font-size:.78rem;color:var(--text-light);margin-top:8px;}
 
-    /* SECTION TITLE */
-    .section-ttl{font-family:'Shippori Mincho',serif;font-size:0.76rem;font-weight:600;color:var(--text3);letter-spacing:0.18em;text-transform:uppercase;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+/* ─── Table ──────────────────────────────── */
+.table-card{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  overflow:hidden;margin-bottom:24px;
+}
+.table-card-header{
+  padding:16px 20px;border-bottom:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;
+}
+.table-card-title{font-size:.92rem;font-weight:700;color:var(--navy);}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{
+  background:var(--blue-light);padding:10px 16px;
+  font-size:.78rem;font-weight:700;color:var(--navy);
+  text-align:left;white-space:nowrap;border-bottom:1px solid var(--border);
+}
+td{
+  padding:10px 16px;font-size:.85rem;color:var(--text-sub);
+  border-bottom:1px solid var(--border);
+}
+tr:last-child td{border:none;}
+tr:hover td{background:var(--bg);}
+.badge-level{
+  display:inline-block;padding:2px 10px;border-radius:10px;
+  font-size:.72rem;font-weight:700;
+}
+.badge-A{background:#d4edda;color:#155724;}
+.badge-B{background:#fff3cd;color:#856404;}
+.badge-C{background:#f8d7da;color:#721c24;}
+.badge-live{background:var(--green-pale);color:var(--green);}
+.badge-draft{background:var(--yellow-pale);color:var(--yellow);}
 
-    /* LP CARD */
-    .lp-card{background:var(--white);border:1px solid var(--border);border-left:4px solid var(--maple-red);padding:22px 26px;margin-bottom:14px;box-shadow:var(--shadow)}
-    .lp-card-top{display:flex;align-items:center;gap:12px;margin-bottom:18px}
-    .lp-card-label{font-family:'Shippori Mincho',serif;font-size:1.1rem;font-weight:600;color:var(--text)}
-    .lp-card-variant{font-size:0.68rem;color:var(--text3);margin-left:auto;letter-spacing:0.10em}
-    .lp-card-url{font-size:0.72rem;color:var(--maple-gold);text-decoration:none;letter-spacing:0.04em}
-    .lp-card-url:hover{text-decoration:underline}
-    .lp-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
-    .lp-tab{padding:7px 18px;border:1px solid var(--border);background:none;color:var(--muted);font-family:var(--font);font-size:12px;letter-spacing:.08em;cursor:pointer;border-radius:2px;transition:all .2s}
-    .lp-tab.active{background:var(--maple-red);border-color:var(--maple-red);color:#fff}
-    .lp-tab:hover:not(.active){border-color:var(--maple-red);color:var(--maple-red)}
-    .lp-metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-    .lp-metric{background:var(--bg2);padding:14px 16px;border:1px solid var(--border)}
-    .lp-metric-lbl{font-size:0.66rem;color:var(--text3);letter-spacing:0.12em;margin-bottom:6px;text-transform:uppercase}
-    .lp-metric-val{font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:500;color:var(--maple-red)}
+/* ─── Blog Editor ────────────────────────── */
+.editor-card{
+  background:var(--white);border-radius:var(--radius);
+  border:1px solid var(--border);box-shadow:var(--shadow);
+  padding:24px;margin-bottom:24px;
+}
+.editor-title{font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:16px;}
+.form-group{margin-bottom:14px;}
+.form-label{font-size:.8rem;font-weight:700;color:var(--text-sub);margin-bottom:5px;display:block;}
+.form-input,.form-select,.form-textarea{
+  width:100%;padding:9px 12px;
+  border:2px solid var(--border);border-radius:8px;
+  font-size:.9rem;font-family:inherit;color:var(--text);
+  transition:.15s;background:var(--white);
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--navy-mid);outline:none;}
+.form-textarea{
+  min-height:160px;resize:vertical;line-height:1.8;
+}
+.btn-publish{
+  background:var(--green);color:var(--white);
+  border:none;border-radius:8px;padding:10px 24px;
+  font-size:.9rem;font-weight:700;cursor:pointer;transition:.2s;
+  font-family:inherit;
+}
+.btn-publish:hover{background:#3a7230;}
+.btn-danger{
+  background:var(--red);color:var(--white);
+  border:none;border-radius:6px;padding:5px 12px;
+  font-size:.78rem;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.btn-danger:hover{background:#b52b27;}
+.btn-secondary{
+  background:var(--bg);color:var(--navy);
+  border:1px solid var(--border);border-radius:8px;padding:9px 20px;
+  font-size:.9rem;font-weight:700;cursor:pointer;transition:.2s;
+  font-family:inherit;margin-left:8px;
+}
+.btn-secondary:hover{background:var(--blue-light);}
 
-    /* CHART */
-    .chart-wrap{background:var(--white);border:1px solid var(--border);padding:28px;margin-bottom:32px;box-shadow:var(--shadow)}
-    .chart-area{height:200px;display:flex;align-items:flex-end;gap:12px}
-    .chart-bar-group{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px}
-    .chart-bars{display:flex;gap:4px;align-items:flex-end;height:160px;width:100%}
-    .chart-bar{flex:1;min-height:2px;border-radius:2px 2px 0 0;transition:height 0.8s ease}
-    .chart-bar.pv{background:rgba(184,96,74,0.45)}
-    .chart-bar.diag{background:rgba(200,164,90,0.55)}
-    .chart-bar.book{background:rgba(74,124,89,0.55)}
-    .chart-label{font-size:0.64rem;color:var(--text3);text-align:center;font-family:'Noto Sans JP',sans-serif}
-    .chart-legend{display:flex;gap:20px;margin-top:14px}
-    .chart-legend-item{display:flex;align-items:center;gap:7px;font-size:0.70rem;color:var(--text2)}
-    .chart-legend-dot{width:12px;height:12px;border-radius:2px}
+/* ─── Toast ──────────────────────────────── */
+#toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--navy);color:var(--white);
+  padding:12px 20px;border-radius:10px;
+  font-size:.88rem;box-shadow:0 4px 20px rgba(0,0,0,.2);
+  opacity:0;transition:.3s;pointer-events:none;z-index:999;
+}
+#toast.show{opacity:1;}
 
-    /* SCORE */
-    .score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:32px}
-    .score-card{background:var(--white);border:1px solid var(--border);padding:22px 20px;text-align:center;box-shadow:var(--shadow)}
-    .score-card-lbl{font-size:0.68rem;color:var(--text3);letter-spacing:0.16em;margin-bottom:12px;text-transform:uppercase}
-    .score-card-val{font-family:'Cormorant Garamond',serif;font-size:2.6rem;font-weight:500}
-    .score-card-val.a{color:var(--green)}.score-card-val.b{color:var(--yellow)}.score-card-val.c{color:var(--red)}
+/* ─── Refresh btn ────────────────────────── */
+.btn-refresh{
+  background:var(--blue-light);color:var(--navy-mid);
+  border:1px solid var(--border);border-radius:8px;
+  padding:7px 16px;font-size:.82rem;font-weight:700;
+  cursor:pointer;font-family:inherit;transition:.2s;
+}
+.btn-refresh:hover{background:var(--border);}
 
-    /* FEED */
-    .feed-wrap{background:var(--white);border:1px solid var(--border);padding:24px;margin-bottom:32px;max-height:340px;overflow-y:auto;box-shadow:var(--shadow)}
-    .feed-item{display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)}
-    .feed-item:last-child{border-bottom:none}
-    .feed-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
-    .feed-body{flex:1}
-    .feed-ev{font-size:0.82rem;color:var(--text);font-weight:400;letter-spacing:0.02em}
-    .feed-meta{font-size:0.70rem;color:var(--text3);margin-top:3px;letter-spacing:0.04em}
-    .feed-empty{font-size:0.78rem;color:var(--text3);text-align:center;padding:24px 0;letter-spacing:0.06em}
-
-    @media(max-width:768px){
-      .stats-grid{grid-template-columns:repeat(2,1fr)}
-      .lp-metrics{grid-template-columns:repeat(2,1fr)}
-      .score-grid{grid-template-columns:1fr}
-      main{padding:20px 16px}
-      header{padding:0 16px}
-    }
-  </style>
+.loading-text{
+  text-align:center;padding:32px;
+  color:var(--text-light);font-size:.88rem;
+}
+</style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginWrap">
-  <div class="login-box">
-    <div class="login-logo"><span>🍁</span>salon 楓</div>
-    <div class="login-sub">管理ダッシュボード</div>
-    <label class="login-label">パスワード</label>
-    <input type="password" id="pwInput" class="login-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
-    <button class="login-btn" onclick="doLogin()">ログイン</button>
-    <p class="login-err" id="loginErr">パスワードが正しくありません</p>
+<!-- ─── Sidebar ────────────────────────────── -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-text">🍁 楓グループ</div>
+    <div class="sb-logo-sub">管理画面</div>
   </div>
+  <nav class="sb-nav">
+    <div class="sb-section">ANALYTICS</div>
+    <button class="sb-link active" id="nav-dashboard" onclick="showPage('dashboard')">📊 ダッシュボード</button>
+    <button class="sb-link" id="nav-recruit" onclick="showPage('recruit')">👥 採用申し込み</button>
+    <div class="sb-section">CONTENT</div>
+    <button class="sb-link" id="nav-blog" onclick="showPage('blog')">✏️ ブログ管理</button>
+  </nav>
+  <div class="sb-user">info.kaedesalon@gmail.com</div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashWrap">
-  <header>
-    <div class="hd-left">
-      <span class="hd-logo"><span>🍁</span>salon 楓</span>
-      <span class="hd-badge">ADMIN</span>
-    </div>
-    <span class="hd-meta" id="hdMeta"></span>
-    <button class="logout-btn" onclick="doLogout()">ログアウト</button>
-  </header>
+<!-- ─── Main ───────────────────────────────── -->
+<div class="main">
 
-  <main>
-    <div class="status-bar">
-      <div class="status-dot"></div>
-      <span class="status-txt" id="statusTxt">Amplitude に接続中…</span>
-      <span class="status-lp" id="statusLp">LP: kaede-v1　main.kaedesalon.shop</span>
+  <!-- DASHBOARD -->
+  <div class="page-panel active" id="page-dashboard">
+    <div class="main-header">
+      <div class="main-title">ダッシュボード</div>
+      <div class="main-sub">採用LP（kaede-recruit-v1）のアクセス・診断・申し込み状況</div>
     </div>
+    <div class="kpi-grid" id="kpi-grid">
+      <div class="kpi-card"><div class="kpi-label">ページ閲覧（PV）</div><div class="kpi-value" id="kv-pv">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">AI診断開始</div><div class="kpi-value" id="kv-diag">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">面談申し込み</div><div class="kpi-value" id="kv-book">—</div></div>
+      <div class="kpi-card"><div class="kpi-label">CVR（申込/PV）</div><div class="kpi-value" id="kv-cvr">—</div></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-title">イベント別 ファネル（30日間）</div>
+      <div id="funnel-chart"><div class="loading-text">読み込み中…</div></div>
+      <div class="chart-note">※ Amplitude データを取得中。APIキーが未設定の場合はサンプル表示。</div>
+    </div>
+    <div style="text-align:right;margin-bottom:12px;">
+      <button class="btn-refresh" onclick="loadDashboard()">↻ 更新</button>
+    </div>
+  </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-lbl">ページビュー（今月）</div>
-        <div class="stat-val" id="sPV">—</div>
-        <div class="stat-sub">page_view</div>
+  <!-- RECRUIT SUBMISSIONS -->
+  <div class="page-panel" id="page-recruit">
+    <div class="main-header">
+      <div class="main-title">採用申し込み一覧</div>
+      <div class="main-sub">面談申し込みの受信記録（Googleスプレッドシートと同期）</div>
+    </div>
+    <div class="table-card">
+      <div class="table-card-header">
+        <div class="table-card-title">申し込み一覧</div>
+        <button class="btn-refresh" onclick="loadRecruitData()">↻ 更新</button>
       </div>
-      <div class="stat-card">
-        <div class="stat-lbl">AI診断 開始</div>
-        <div class="stat-val" id="sDiag">—</div>
-        <div class="stat-sub">diagnosis_click</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-lbl">予約完了</div>
-        <div class="stat-val" id="sBook">—</div>
-        <div class="stat-sub">booking_complete</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-lbl">診断転換率</div>
-        <div class="stat-val" id="sRate">—</div>
-        <div class="stat-sub">診断÷PV</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>送信日時</th><th>お名前</th><th>携帯</th><th>メール</th>
+              <th>面談希望日</th><th>ポジション</th><th>Lv</th>
+            </tr>
+          </thead>
+          <tbody id="recruit-tbody">
+            <tr><td colspan="7" style="text-align:center;color:var(--text-light);">データを読み込むには「更新」を押してください</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
+    <div style="font-size:.78rem;color:var(--text-light);">
+      ※ 完全なデータはGoogleスプレッドシート（採用問い合わせ シート）でご確認ください。
+    </div>
+  </div>
 
-    <div class="section-ttl" style="margin-top:8px">LP MONITOR</div>
-    <div class="lp-tabs">
-      <button class="lp-tab active" onclick="switchLP('kaede-v1')" id="tab-kaede-v1">main.kaedesalon.shop</button>
-      <button class="lp-tab" onclick="switchLP('kaede-v2')" id="tab-kaede-v2">mainlp1.kaedesalon.shop</button>
-      <button class="lp-tab" onclick="switchLP('kaede-lp2')" id="tab-kaede-lp2">mainlp2.kaedesalon.shop</button>
-    </div>
-    <div class="lp-card" id="lpCard">
-      <div class="lp-card-top">
-        <span style="width:4px;height:22px;background:var(--maple-red);display:inline-block;border-radius:2px;flex-shrink:0"></span>
-        <span class="lp-card-label" id="lpCardLabel">salon楓 メンズ脱毛LP</span>
-        <span class="lp-card-variant" id="lpCardVariant">v1（稼働中）</span>
-        <a href="https://main.kaedesalon.shop" target="_blank" class="lp-card-url" id="lpCardUrl">main.kaedesalon.shop ↗</a>
-      </div>
-      <div class="lp-metrics">
-        <div class="lp-metric"><div class="lp-metric-lbl">PV（今月）</div><div class="lp-metric-val" id="lpPV">—</div></div>
-        <div class="lp-metric"><div class="lp-metric-lbl">診断数</div><div class="lp-metric-val" id="lpDiag">—</div></div>
-        <div class="lp-metric"><div class="lp-metric-lbl">予約数</div><div class="lp-metric-val" id="lpBook">—</div></div>
-        <div class="lp-metric"><div class="lp-metric-lbl">予約転換率</div><div class="lp-metric-val" id="lpConv">—</div></div>
-      </div>
-    </div>
-
-    <div class="section-ttl" style="margin-top:32px">週別トレンド（過去5週）</div>
-    <div class="chart-wrap">
-      <div class="chart-area" id="chartArea"></div>
-      <div class="chart-legend">
-        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:rgba(184,96,74,0.45)"></div>PV</div>
-        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:rgba(200,164,90,0.55)"></div>診断</div>
-        <div class="chart-legend-item"><div class="chart-legend-dot" style="background:rgba(74,124,89,0.55)"></div>予約</div>
-      </div>
+  <!-- BLOG MANAGEMENT -->
+  <div class="page-panel" id="page-blog">
+    <div class="main-header">
+      <div class="main-title">ブログ管理</div>
+      <div class="main-sub">テキストをコピペするだけで公開できます。HTMLは不要です。</div>
     </div>
 
-    <div class="section-ttl">スコア分布（全期間）</div>
-    <div class="score-grid">
-      <div class="score-card"><div class="score-card-lbl">LEVEL A（85点以上）</div><div class="score-card-val a" id="scA">—</div></div>
-      <div class="score-card"><div class="score-card-lbl">LEVEL B（70〜84点）</div><div class="score-card-val b" id="scB">—</div></div>
-      <div class="score-card"><div class="score-card-lbl">LEVEL C（69点以下）</div><div class="score-card-val c" id="scC">—</div></div>
+    <div class="editor-card">
+      <div class="editor-title">✏️ 新規記事を投稿</div>
+      <div class="form-group">
+        <label class="form-label">カテゴリ</label>
+        <select class="form-select" id="blog-cat">
+          <option value="オーナーより">オーナーより</option>
+          <option value="スタッフより">スタッフより</option>
+          <option value="お知らせ">お知らせ</option>
+          <option value="つぶやき">つぶやき</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">タイトル</label>
+        <input class="form-input" id="blog-title" type="text" placeholder="記事のタイトルを入力">
+      </div>
+      <div class="form-group">
+        <label class="form-label">本文（テキストのみ・コピペOK）</label>
+        <textarea class="form-textarea" id="blog-body" placeholder="記事の本文をここに貼り付けてください。&#10;改行はそのまま反映されます。HTMLは不要です。"></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn-publish" onclick="publishPost()">公開する</button>
+        <button class="btn-secondary" onclick="clearEditor()">クリア</button>
+        <span id="publish-status" style="font-size:.82rem;color:var(--text-light);"></span>
+      </div>
     </div>
 
-    <div class="section-ttl">アクティビティ フィード（過去4時間）</div>
-    <div class="feed-wrap" id="feedWrap">
-      <div class="feed-empty">読み込み中…</div>
+    <div class="table-card">
+      <div class="table-card-header">
+        <div class="table-card-title">投稿済み記事一覧</div>
+        <button class="btn-refresh" onclick="loadBlogPosts()">↻ 更新</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>投稿日時</th><th>カテゴリ</th><th>タイトル</th><th>本文（抜粋）</th><th>操作</th></tr>
+          </thead>
+          <tbody id="blog-tbody">
+            <tr><td colspan="5" style="text-align:center;color:var(--text-light);">「更新」を押して記事を読み込んでください</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-  </main>
-</div>
+  </div>
+
+</div><!-- /main -->
+
+<div id="toast"></div>
 
 <script>
-  const ADMIN_PW = 'kaede2026';
+// ── Navigation ─────────────────────────────────────
+function showPage(page){
+  document.querySelectorAll('.page-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('nav-' + page).classList.add('active');
+  if(page === 'dashboard') loadDashboard();
+  if(page === 'blog')      loadBlogPosts();
+  if(page === 'recruit')   loadRecruitData();
+}
 
-  // LP_ID は各サイトの index.html 内 LP_ID 定数と一致させること
-  // mainlp1: index=kaede-v2 / Amplitude旧データ=kaede-v1（移行前）
-  // mainlp2: index=kaede-lp2 ✓
-  const LP_LIST = {
-    'kaede-v1': {
-      id: 'kaede-v1',
-      label: 'salon楓 メンズ脱毛 Main',
-      variant: 'v1（稼働中）',
-      url: 'https://main.kaedesalon.shop',
-      urlLabel: 'main.kaedesalon.shop ↗',
-      status: 'live'
-    },
-    'kaede-v2': {
-      id: 'kaede-v2',
-      label: 'salon楓 mainlp1',
-      variant: 'v2（稼働中）',
-      url: 'https://mainlp1.kaedesalon.shop',
-      urlLabel: 'mainlp1.kaedesalon.shop ↗',
-      status: 'live'
-    },
-    'kaede-lp2': {
-      id: 'kaede-lp2',
-      label: 'salon楓 LP2（Path-Flow）',
-      variant: 'v3.2（稼働中）',
-      url: 'https://mainlp2.kaedesalon.shop',
-      urlLabel: 'mainlp2.kaedesalon.shop ↗',
-      status: 'live'
-    }
-  };
+function toast(msg, isError){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.background = isError ? '#d9534f' : '#1a2f5e';
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
 
-  let LP_ID = 'kaede-v1';
+// ── Dashboard ──────────────────────────────────────
+async function loadDashboard(){
+  const lp = 'kaede-recruit-v1';
+  const events = ['page_view','diagnosis_click','booking_complete'];
+  const values = {};
 
-  function switchLP(id) {
-    LP_ID = id;
-    // タブ切替
-    Object.keys(LP_LIST).forEach(k => {
-      const tab = document.getElementById('tab-' + k);
-      if (tab) tab.classList.toggle('active', k === id);
-    });
-    // LP情報更新
-    const lp = LP_LIST[id];
-    document.getElementById('lpCardLabel').textContent = lp.label;
-    document.getElementById('lpCardVariant').textContent = lp.variant;
-    const urlEl = document.getElementById('lpCardUrl');
-    urlEl.textContent = lp.urlLabel;
-    urlEl.href = lp.url;
-    document.getElementById('statusLp').textContent = 'LP: ' + id + '　' + lp.url.replace('https://','');
-    // データ再取得
-    initDash();
-  }
+  document.getElementById('funnel-chart').innerHTML = '<div class="loading-text">取得中…</div>';
 
-  function doLogin(){
-    if(document.getElementById('pwInput').value===ADMIN_PW){
-      sessionStorage.setItem('kaede_admin','1');
-      document.getElementById('loginWrap').style.display='none';
-      document.getElementById('dashWrap').style.display='block';
-      initDash();
-    }else{
-      document.getElementById('loginErr').style.display='block';
-    }
-  }
-  function doLogout(){sessionStorage.removeItem('kaede_admin');location.reload()}
-  if(sessionStorage.getItem('kaede_admin')==='1'){
-    document.getElementById('loginWrap').style.display='none';
-    document.getElementById('dashWrap').style.display='block';
-  }
-
-  async function ampFeed(body){
+  for(const ev of events){
     try{
-      const r=await fetch('/api/amplitude-feed',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-      if(!r.ok) return null;
-      return await r.json();
-    }catch(e){return null}
-  }
-
-  async function initDash(){
-    const now=new Date();
-    document.getElementById('hdMeta').textContent=now.toLocaleString('ja-JP');
-    document.getElementById('statusTxt').textContent='Amplitude からデータ取得中…';
-
-    const y=now.getFullYear(),m=now.getMonth();
-    const start=new Date(y,m,1).toISOString().split('T')[0];
-    const end=now.toISOString().split('T')[0];
-
-    const data=await ampFeed({lp:LP_ID,start,end,events:['page_view','diagnosis_click','booking_complete']});
-
-    if(data&&data.counts){
-      const pv=data.counts.page_view||0;
-      const diag=data.counts.diagnosis_click||0;
-      const book=data.counts.booking_complete||0;
-      const rate=pv>0?(diag/pv*100).toFixed(1)+'%':'—';
-
-      document.getElementById('sPV').textContent=pv.toLocaleString();
-      document.getElementById('sDiag').textContent=diag.toLocaleString();
-      document.getElementById('sBook').textContent=book.toLocaleString();
-      document.getElementById('sRate').textContent=rate;
-      document.getElementById('lpPV').textContent=pv.toLocaleString();
-      document.getElementById('lpDiag').textContent=diag.toLocaleString();
-      document.getElementById('lpBook').textContent=book.toLocaleString();
-      document.getElementById('lpConv').textContent=diag>0?(book/diag*100).toFixed(1)+'%':'—';
-      document.getElementById('statusTxt').textContent='Amplitude 接続済み — データ取得完了';
-    }else{
-      document.getElementById('statusTxt').textContent='Amplitude 接続待機中';
+      const r = await fetch(`/api/amplitude-feed?lp=${encodeURIComponent(lp)}&event=${ev}`);
+      const d = await r.json();
+      const series = d?.data?.series?.[0] || [];
+      values[ev] = series.reduce((a,b) => a + (b || 0), 0);
+    } catch(e){
+      values[ev] = null;
     }
+  }
 
-    const sd=await ampFeed({lp:LP_ID,query:'score_distribution'});
-    if(sd&&sd.distribution){
-      document.getElementById('scA').textContent=(sd.distribution.A||0)+'件';
-      document.getElementById('scB').textContent=(sd.distribution.B||0)+'件';
-      document.getElementById('scC').textContent=(sd.distribution.C||0)+'件';
+  const pv   = values['page_view']         ?? '—';
+  const diag = values['diagnosis_click']   ?? '—';
+  const book = values['booking_complete']  ?? '—';
+  const cvr  = (typeof pv === 'number' && pv > 0)
+    ? ((book / pv) * 100).toFixed(1) + '%'
+    : '—';
+
+  document.getElementById('kv-pv').textContent   = typeof pv   === 'number' ? pv.toLocaleString()   : '—';
+  document.getElementById('kv-diag').textContent = typeof diag === 'number' ? diag.toLocaleString() : '—';
+  document.getElementById('kv-book').textContent = typeof book === 'number' ? book.toLocaleString() : '—';
+  document.getElementById('kv-cvr').textContent  = cvr;
+
+  // Funnel chart
+  const maxVal = Math.max(
+    typeof pv   === 'number' ? pv   : 0,
+    typeof diag === 'number' ? diag : 0,
+    typeof book === 'number' ? book : 0,
+    1
+  );
+  function barRow(label, val, color){
+    const pct = typeof val === 'number' ? Math.round((val / maxVal) * 100) : 0;
+    return `<div class="chart-bar-row">
+      <div class="chart-bar-label">${label}</div>
+      <div class="chart-bar-track"><div class="chart-bar-fill" style="width:${pct}%;background:${color};"></div></div>
+      <div class="chart-bar-val">${typeof val === 'number' ? val.toLocaleString() : '—'}</div>
+    </div>`;
+  }
+  document.getElementById('funnel-chart').innerHTML =
+    barRow('ページ閲覧（PV）',   pv,   '#2a4080') +
+    barRow('AI診断開始',         diag, '#4a8c3f') +
+    barRow('面談申し込み',       book, '#c8a46e');
+}
+
+// ── Recruit data (from SS via amplitude-feed is not applicable, show guide) ──
+async function loadRecruitData(){
+  const tbody = document.getElementById('recruit-tbody');
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--text-light);">
+    採用申し込みの詳細データはGoogleスプレッドシート「採用問い合わせ」シートでご確認ください。<br>
+    <a href="https://docs.google.com/spreadsheets/" target="_blank" style="color:var(--navy-mid);font-size:.85rem;">Googleスプレッドシートを開く →</a>
+  </td></tr>`;
+}
+
+// ── Blog ───────────────────────────────────────────
+async function loadBlogPosts(){
+  const tbody = document.getElementById('blog-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" class="loading-text">読み込み中…</td></tr>';
+  try{
+    const r = await fetch('/api/save-blog');
+    const d = await r.json();
+    const posts = d.posts || [];
+    if(posts.length === 0){
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);padding:24px;">投稿はまだありません</td></tr>';
+      return;
     }
-
-    renderChart();
-
-    const feed=await ampFeed({lp:LP_ID,query:'activity_feed',hours:4,limit:20});
-    renderFeed(feed?feed.events:null);
+    tbody.innerHTML = posts.map(p => `
+      <tr>
+        <td style="white-space:nowrap;">${p.datetime}</td>
+        <td><span class="badge-level badge-live">${escHtml(p.category)}</span></td>
+        <td style="font-weight:600;">${escHtml(p.title)}</td>
+        <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(p.body.slice(0,80))}${p.body.length > 80 ? '…' : ''}</td>
+        <td><button class="btn-danger" onclick="deletePost('${p.id}')">削除</button></td>
+      </tr>
+    `).join('');
+  } catch(e){
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-light);">取得エラー。APIが設定されているか確認してください。</td></tr>';
   }
+}
 
-  function renderChart(){
-    const area=document.getElementById('chartArea');
-    const weeks=['4週前','3週前','2週前','先週','今週'];
-    area.innerHTML='';
-    weeks.forEach(w=>{
-      const grp=document.createElement('div');grp.className='chart-bar-group';
-      const bars=document.createElement('div');bars.className='chart-bars';
-      ['pv','diag','book'].forEach(cls=>{
-        const b=document.createElement('div');b.className='chart-bar '+cls;b.style.height='2px';bars.appendChild(b);
-      });
-      const lbl=document.createElement('div');lbl.className='chart-label';lbl.textContent=w;
-      grp.appendChild(bars);grp.appendChild(lbl);area.appendChild(grp);
+async function publishPost(){
+  const cat   = document.getElementById('blog-cat').value;
+  const title = document.getElementById('blog-title').value.trim();
+  const body  = document.getElementById('blog-body').value.trim();
+  if(!title||!body){ toast('タイトルと本文は必須です。', true); return; }
+
+  document.getElementById('publish-status').textContent = '送信中…';
+  try{
+    const r = await fetch('/api/save-blog',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ category: cat, title, body }),
     });
+    const d = await r.json();
+    if(d.ok){
+      toast('公開しました！');
+      clearEditor();
+      loadBlogPosts();
+    } else {
+      toast('エラーが発生しました。', true);
+    }
+  } catch(e){
+    toast('通信エラー。', true);
   }
+  document.getElementById('publish-status').textContent = '';
+}
 
-  const FEED_ICONS={page_view:'👁',diagnosis_click:'🔬',booking_complete:'✅'};
-  const FEED_LABELS={page_view:'ページビュー',diagnosis_click:'AI診断 開始',booking_complete:'予約完了'};
-
-  function renderFeed(events){
-    const wrap=document.getElementById('feedWrap');
-    if(!events||events.length===0){wrap.innerHTML='<div class="feed-empty">過去4時間のアクティビティはありません</div>';return;}
-    wrap.innerHTML='';
-    events.forEach(ev=>{
-      const item=document.createElement('div');item.className='feed-item';
-      item.innerHTML=`<span class="feed-icon">${FEED_ICONS[ev.event]||'📌'}</span>
-        <div class="feed-body">
-          <div class="feed-ev">${FEED_LABELS[ev.event]||ev.event}</div>
-          <div class="feed-meta">${ev.time||''} &nbsp;·&nbsp; ${ev.lp||LP_ID}</div>
-        </div>`;
-      wrap.appendChild(item);
+async function deletePost(id){
+  if(!confirm('この記事を削除しますか？')) return;
+  try{
+    const r = await fetch('/api/save-blog',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ id }),
     });
+    const d = await r.json();
+    if(d.ok){ toast('削除しました。'); loadBlogPosts(); }
+    else toast('削除エラー。', true);
+  } catch(e){
+    toast('通信エラー。', true);
   }
+}
 
-  if(sessionStorage.getItem('kaede_admin')==='1'){
-    initDash();
-    setInterval(initDash,30*60*1000);
-  }
+function clearEditor(){
+  document.getElementById('blog-title').value = '';
+  document.getElementById('blog-body').value  = '';
+}
+
+function escHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ── Init ───────────────────────────────────────────
+loadDashboard();
 </script>
 </body>
 </html>
