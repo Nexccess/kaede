@@ -1,12 +1,18 @@
-// api/save-shigyou.js  (kaede-corp / v3.4-fix2)
-// Promise.allSettled で mail/calendar エラーを完全に封じ込め
+// api/save-shigyou.js  (kaede-corp / v3.4-final)
+// §5-1仕様準拠: SHEET_NAME=AI診断結果, Promise.allSettled, App PW スペース除去
 "use strict";
 
 const { google } = require("googleapis");
 const nodemailer  = require("nodemailer");
 
-const SHEET_NAME   = "採用問い合わせ";
+const SHEET_NAME   = "AI診断結果";
 const NOTIFY_EMAIL = "info.kaedesalon@gmail.com";
+
+const HEADERS = [
+  "送信日時","LP_ID","お名前","携帯電話","メールアドレス",
+  "希望日時（第1）","希望日時（第2）","おすすめメニュー",
+  "スコア","レベル","診断回答",
+];
 
 function getAuth() {
   const json = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_JSON);
@@ -19,11 +25,26 @@ function getAuth() {
   });
 }
 
-// ── SS書込み（必須） ────────────────────────────────
-async function appendToSheet(auth, payload) {
-  const sheets = google.sheets({ version: "v4", auth });
-  const spreadsheetId = process.env.SHIGYOU_SPREADSHEET_ID;
+// ── シート存在確認→なければ作成→ヘッダー自動挿入 ──
+async function ensureSheet(sheets, spreadsheetId) {
+  const meta   = await sheets.spreadsheets.get({ spreadsheetId });
+  const exists = meta.data.sheets.some(s => s.properties.title === SHEET_NAME);
 
+  if (!exists) {
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId,
+      requestBody: { requests: [{ addSheet: { properties: { title: SHEET_NAME } } }] },
+    });
+    await sheets.spreadsheets.values.append({
+      spreadsheetId,
+      range: `${SHEET_NAME}!A1`,
+      valueInputOption: "RAW",
+      requestBody: { values: [HEADERS] },
+    });
+    return;
+  }
+
+  // シート存在 → ヘッダー確認
   const check = await sheets.spreadsheets.values.get({
     spreadsheetId,
     range: `${SHEET_NAME}!A1:K1`,
@@ -33,22 +54,31 @@ async function appendToSheet(auth, payload) {
       spreadsheetId,
       range: `${SHEET_NAME}!A1`,
       valueInputOption: "RAW",
-      requestBody: {
-        values: [["送信日時","LP_ID","お名前","携帯電話","メールアドレス",
-                  "希望日時（第1）","希望日時（第2）","おすすめポジション",
-                  "スコア","レベル","診断回答"]],
-      },
+      requestBody: { values: [HEADERS] },
     });
   }
+}
+
+// ── SS書込み（必須） ─────────────────────────────
+async function appendToSheet(auth, payload) {
+  const sheets        = google.sheets({ version: "v4", auth });
+  const spreadsheetId = process.env.SHIGYOU_SPREADSHEET_ID;
+
+  await ensureSheet(sheets, spreadsheetId);
+
   await sheets.spreadsheets.values.append({
     spreadsheetId,
     range: `${SHEET_NAME}!A1`,
     valueInputOption: "RAW",
     requestBody: {
       values: [[
-        payload.now, payload.lp,
-        payload.name, payload.phone, payload.email,
-        payload.date, payload.date2 || "",
+        payload.now,
+        payload.lp,
+        payload.name,
+        payload.phone,
+        payload.email,
+        payload.date,
+        payload.date2 || "",
         payload.recommended_menu || "",
         payload.score !== undefined ? String(payload.score) : "",
         payload.level || "",
@@ -58,64 +88,84 @@ async function appendToSheet(auth, payload) {
   });
 }
 
-// ── カレンダー（非致命的） ──────────────────────────
+// ── カレンダー登録（非致命的） ──────────────────
 async function tryInsertCalendar(auth, payload) {
   const calendarId = process.env.CALENDAR_ID;
   if (!calendarId || !payload.date) return;
+
+  // date = "yyyy-mm-dd 時間帯" → "yyyy-mm-dd" 抽出
   const dateOnly = payload.date.split(" ")[0];
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) return;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateOnly)) {
+    console.warn("[calendar] 日付フォーマット不正:", payload.date);
+    return;
+  }
+
   const calendar = google.calendar({ version: "v3", auth });
   await calendar.events.insert({
     calendarId,
     requestBody: {
-      summary: `【仮予約・採用面談】${payload.name} 様`,
+      summary:     `【仮予約・採用面談】${payload.name} 様`,
       description: `ポジション: ${payload.recommended_menu}\nスコア: ${payload.score} (${payload.level})\nTEL: ${payload.phone}\nEmail: ${payload.email}`,
       start: { date: dateOnly },
       end:   { date: dateOnly },
     },
   });
+  console.log("[calendar] 登録完了:", dateOnly);
 }
 
-// ── Gmail（非致命的） ────────────────────────────────
+// ── Gmailメール通知（非致命的） ─────────────────
 async function trySendMail(payload) {
-  const appPass = process.env.GMAIL_APP_PASSWORD;
-  if (!appPass) return;
+  const rawPass = process.env.GMAIL_APP_PASSWORD;
+  if (!rawPass) { console.warn("[mail] GMAIL_APP_PASSWORD 未設定"); return; }
+
+  // Googleのアプリパスワードはスペース区切りで表示されるため除去
+  const appPass   = rawPass.replace(/\s+/g, "");
+  const gmailUser = (process.env.GMAIL_USER || NOTIFY_EMAIL).trim();
+
   const transport = nodemailer.createTransport({
     service: "gmail",
-    auth: { user: NOTIFY_EMAIL, pass: appPass },
+    auth: { user: gmailUser, pass: appPass },
   });
+
   await transport.sendMail({
-    from:    `"楓salon 採用システム" <${NOTIFY_EMAIL}>`,
+    from:    `"楓salon 採用システム" <${gmailUser}>`,
     to:      NOTIFY_EMAIL,
-    subject: `【採用問い合わせ】${payload.name} 様 (${payload.level})`,
+    subject: `【採用問い合わせ】${payload.name} 様 (Lv.${payload.level})`,
     text: [
       "新しい採用問い合わせが届きました。",
       "",
       `■ お名前        : ${payload.name}`,
       `■ 携帯電話      : ${payload.phone}`,
       `■ メールアドレス: ${payload.email}`,
-      `■ 面談希望日（第1）: ${payload.date}`,
-      `■ 面談希望日（第2）: ${payload.date2 || "未入力"}`,
-      `■ ポジション    : ${payload.recommended_menu}`,
+      `■ 希望日時（第1）: ${payload.date}`,
+      `■ 希望日時（第2）: ${payload.date2 || "未入力"}`,
+      `■ おすすめポジション: ${payload.recommended_menu}`,
       `■ スコア        : ${payload.score} / Lv: ${payload.level}`,
       `■ 診断回答      : ${payload.answersStr}`,
       "",
       `送信日時: ${payload.now}`,
     ].join("\n"),
   });
+  console.log("[mail] 送信完了 →", NOTIFY_EMAIL);
 }
 
+// ── メインハンドラ ────────────────────────────
 module.exports = async (req, res) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.status(200).end();
-  if (req.method !== "POST") return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method !== "POST")   return res.status(405).json({ error: "Method Not Allowed" });
 
   try {
-    const { lp, name, phone, email, date, date2,
-            recommended_menu, score, level, answers } = req.body || {};
+    const {
+      lp, name, phone, email,
+      date, date2,
+      recommended_menu, score, level,
+      answers,
+    } = req.body || {};
 
+    // §2-1準拠: answersは必ず文字列型で渡す
     const answersStr = Array.isArray(answers)
       ? answers.join(" / ")
       : (typeof answers === "string" ? answers : "");
@@ -125,10 +175,15 @@ module.exports = async (req, res) => {
       .replace(/\//g, "-");
 
     const payload = {
-      now, lp: lp || "kaede-recruit-v1",
+      now,
+      lp:   lp || "kaede-recruit-v1",
       name, phone, email,
-      date, date2: date2 || "",
-      recommended_menu, score, level, answersStr,
+      date,
+      date2: date2 || "",
+      recommended_menu,
+      score,
+      level,
+      answersStr,
     };
 
     const auth = getAuth();
@@ -136,14 +191,14 @@ module.exports = async (req, res) => {
     // SS書込み（必須 / 失敗→500）
     await appendToSheet(auth, payload);
 
-    // カレンダー・メール: allSettled で完全封じ込め→どちらが失敗しても200
+    // カレンダー・メール: allSettled で封じ込め → どちら失敗でも200
     const results = await Promise.allSettled([
       tryInsertCalendar(auth, payload),
       trySendMail(payload),
     ]);
     results.forEach((r, i) => {
       if (r.status === "rejected") {
-        console.warn(`[save-shigyou] 非致命的エラー[${i}]:`, r.reason?.message);
+        console.warn(`[save-shigyou] 非致命的エラー[${["calendar","mail"][i]}]:`, r.reason?.message);
       }
     });
 
