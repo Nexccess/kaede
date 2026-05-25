@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コラム投稿 ｜ 楓グループ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500&family=Shippori+Mincho:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#4a8c3f;--green-deep:#2d5a27;--green-pale:#e8f5e5;
+  --wood:#c8a46e;--wood-light:#f0e6d3;
+  --bg:#f4faf2;--white:#fff;--border:#dde8db;
+  --text:#2a2a2a;--text2:#5a5a5a;--text3:#9a9a9a;
+  --shadow:0 4px 20px rgba(45,90,39,.10);
+  --radius:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);font-family:'Noto Sans JP',sans-serif;font-weight:300;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+
+/* ── LOGIN ── */
+#loginWrap{width:100%;max-width:380px}
+.login-box{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:48px 40px;box-shadow:var(--shadow)}
+.login-logo{font-family:'Shippori Mincho',serif;font-size:1.5rem;font-weight:600;color:var(--green-deep);text-align:center;margin-bottom:4px}
+.login-sub{font-size:0.72rem;color:var(--text3);text-align:center;letter-spacing:0.16em;margin-bottom:36px}
+.form-label{font-size:0.72rem;color:var(--text2);letter-spacing:0.10em;margin-bottom:5px;display:block;text-transform:uppercase}
+.form-input{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans JP',sans-serif;font-size:0.88rem;font-weight:300;color:var(--text);outline:none;transition:border-color .2s;margin-bottom:18px;background:var(--bg)}
+.form-input:focus{border-color:var(--green)}
+.btn-primary{width:100%;padding:12px;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:'Noto Sans JP',sans-serif;font-size:0.88rem;font-weight:500;letter-spacing:0.10em;cursor:pointer;transition:background .2s}
+.btn-primary:hover{background:var(--green-deep)}
+.err{color:#c0392b;font-size:0.74rem;margin-top:8px;text-align:center;display:none}
+
+/* ── EDITOR ── */
+#editorWrap{display:none;width:100%;max-width:680px}
+.editor-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:40px;box-shadow:var(--shadow)}
+.editor-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.editor-logo{font-family:'Shippori Mincho',serif;font-size:1.2rem;font-weight:600;color:var(--green-deep)}
+.editor-logo small{display:block;font-size:0.68rem;color:var(--text3);letter-spacing:0.14em;font-family:'Noto Sans JP',sans-serif;font-weight:300;margin-top:2px}
+.logout-btn{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text3);padding:5px 14px;cursor:pointer;font-size:0.72rem;font-family:'Noto Sans JP',sans-serif;transition:.2s}
+.logout-btn:hover{border-color:var(--green);color:var(--green)}
+
+.form-group{margin-bottom:16px}
+.form-select{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans JP',sans-serif;font-size:0.88rem;font-weight:300;color:var(--text);outline:none;transition:border-color .2s;background:var(--bg)}
+.form-select:focus{border-color:var(--green)}
+.form-textarea{width:100%;min-height:220px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;font-family:'Noto Sans JP',sans-serif;font-size:0.92rem;font-weight:300;color:var(--text);outline:none;transition:border-color .2s;resize:vertical;line-height:1.85;background:var(--bg)}
+.form-textarea:focus{border-color:var(--green)}
+.form-textarea::placeholder{color:var(--text3)}
+
+.btn-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.btn-clear{background:none;border:1px solid var(--border);border-radius:8px;color:var(--text2);padding:11px 20px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;font-size:0.82rem;transition:.2s}
+.btn-clear:hover{border-color:var(--green);color:var(--green)}
+.pub-status{font-size:0.76rem;color:var(--text3);margin-left:6px}
+
+/* ── POSTS LIST ── */
+.posts-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);margin-top:20px;box-shadow:var(--shadow);overflow:hidden}
+.posts-header{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.posts-title{font-size:0.82rem;font-weight:500;color:var(--text)}
+.btn-refresh{background:none;border:1px solid var(--border);border-radius:6px;color:var(--text2);padding:5px 14px;cursor:pointer;font-size:0.72rem;font-family:'Noto Sans JP',sans-serif;transition:.2s}
+.btn-refresh:hover{border-color:var(--green);color:var(--green)}
+.posts-table{width:100%;border-collapse:collapse;font-size:0.82rem}
+.posts-table th{background:var(--green-pale);padding:8px 14px;font-weight:500;color:var(--green-deep);text-align:left;border-bottom:1px solid var(--border);font-size:0.72rem;letter-spacing:0.06em;text-transform:uppercase}
+.posts-table td{padding:10px 14px;color:var(--text2);border-bottom:1px solid var(--border)}
+.posts-table tr:last-child td{border:none}
+.posts-table tr:hover td{background:var(--bg)}
+.btn-del{background:none;border:1px solid #e74c3c;border-radius:4px;color:#e74c3c;padding:3px 10px;cursor:pointer;font-size:0.70rem;font-family:'Noto Sans JP',sans-serif;transition:.2s}
+.btn-del:hover{background:#e74c3c;color:#fff}
+.empty-row td{text-align:center;color:var(--text3);padding:24px}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:20px;right:20px;background:var(--green-deep);color:#fff;padding:11px 20px;border-radius:8px;font-size:0.82rem;box-shadow:var(--shadow);opacity:0;transition:.3s;pointer-events:none;z-index:999}
+#toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginWrap">
+  <div class="login-box">
+    <div class="login-logo">🍁 楓グループ<small>COLUMN 投稿フォーム</small></div>
+    <br>
+    <label class="form-label">パスワード</label>
+    <input type="password" id="pw" class="form-input" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="btn-primary" onclick="doLogin()">ログイン</button>
+    <p class="err" id="loginErr">パスワードが正しくありません</p>
+  </div>
+</div>
+
+<!-- EDITOR -->
+<div id="editorWrap">
+  <div class="editor-card">
+    <div class="editor-header">
+      <div class="editor-logo">🍁 コラム投稿<small>KAEDE GROUP — COLUMN POST</small></div>
+      <button class="logout-btn" onclick="doLogout()">ログアウト</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">カテゴリ</label>
+      <select class="form-select" id="cat">
+        <option value="オーナーより">オーナーより</option>
+        <option value="スタッフより">スタッフより</option>
+        <option value="お知らせ">お知らせ</option>
+        <option value="つぶやき">つぶやき</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">タイトル</label>
+      <input type="text" id="title" class="form-input" placeholder="記事のタイトルを入力">
+    </div>
+    <div class="form-group">
+      <label class="form-label">本文（テキストのみ・コピペOK）</label>
+      <textarea id="body" class="form-textarea" placeholder="ここにテキストを貼り付けてください。HTMLは不要です。&#10;改行はそのまま反映されます。"></textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn-primary" style="width:auto;padding:11px 28px;" onclick="publishPost()">公開する</button>
+      <button class="btn-clear" onclick="clearForm()">クリア</button>
+      <span class="pub-status" id="pubStatus"></span>
+    </div>
+  </div>
+
+  <div class="posts-card">
+    <div class="posts-header">
+      <span class="posts-title">投稿済み記事一覧</span>
+      <button class="btn-refresh" onclick="loadPosts()">↻ 更新</button>
+    </div>
+    <table class="posts-table">
+      <thead><tr><th>投稿日時</th><th>カテゴリ</th><th>タイトル</th><th>操作</th></tr></thead>
+      <tbody id="postsTbody">
+        <tr class="empty-row"><td colspan="4">「更新」を押してください</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const POST_PW = 'kaede2026';
+
+function doLogin(){
+  if(document.getElementById('pw').value === POST_PW){
+    sessionStorage.setItem('col_auth','1');
+    document.getElementById('loginWrap').style.display='none';
+    document.getElementById('editorWrap').style.display='block';
+    loadPosts();
+  } else {
+    document.getElementById('loginErr').style.display='block';
+  }
+}
+function doLogout(){
+  sessionStorage.removeItem('col_auth');
+  location.reload();
+}
+if(sessionStorage.getItem('col_auth')==='1'){
+  document.getElementById('loginWrap').style.display='none';
+  document.getElementById('editorWrap').style.display='block';
+  loadPosts();
+}
+
+async function publishPost(){
+  const cat   = document.getElementById('cat').value;
+  const title = document.getElementById('title').value.trim();
+  const body  = document.getElementById('body').value.trim();
+  if(!title||!body){ toast('タイトルと本文は必須です。',true); return; }
+
+  document.getElementById('pubStatus').textContent='送信中…';
+  try{
+    const r = await fetch('/api/save-blog',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({category:cat, title, body}),
+    });
+    const d = await r.json();
+    if(d.ok){ toast('公開しました！'); clearForm(); loadPosts(); }
+    else toast('エラーが発生しました。',true);
+  } catch(e){ toast('通信エラー。',true); }
+  document.getElementById('pubStatus').textContent='';
+}
+
+async function loadPosts(){
+  const tb = document.getElementById('postsTbody');
+  tb.innerHTML='<tr class="empty-row"><td colspan="4">読込中…</td></tr>';
+  try{
+    const r = await fetch('/api/save-blog');
+    const d = await r.json();
+    const posts = d.posts||[];
+    if(!posts.length){
+      tb.innerHTML='<tr class="empty-row"><td colspan="4">投稿はまだありません</td></tr>';
+      return;
+    }
+    tb.innerHTML = posts.map(p=>`
+      <tr>
+        <td style="white-space:nowrap;font-size:0.76rem">${esc(p.datetime)}</td>
+        <td>${esc(p.category)}</td>
+        <td style="font-weight:500">${esc(p.title)}</td>
+        <td><button class="btn-del" onclick="delPost('${esc(p.id)}')">削除</button></td>
+      </tr>`).join('');
+  } catch(e){
+    tb.innerHTML='<tr class="empty-row"><td colspan="4">取得エラー</td></tr>';
+  }
+}
+
+async function delPost(id){
+  if(!confirm('この記事を削除しますか？'))return;
+  try{
+    const r = await fetch('/api/save-blog',{
+      method:'DELETE',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({id}),
+    });
+    const d = await r.json();
+    if(d.ok){ toast('削除しました。'); loadPosts(); }
+    else toast('削除エラー。',true);
+  } catch(e){ toast('通信エラー。',true); }
+}
+
+function clearForm(){
+  document.getElementById('title').value='';
+  document.getElementById('body').value='';
+}
+
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg,isErr){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.style.background=isErr?'#c0392b':'#2d5a27';
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
